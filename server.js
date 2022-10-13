@@ -4,15 +4,17 @@ const { Server } = require("net");
 
 // Vamos a definir una cadena que indique cuando se ha acabao la conexión
 const END = "END";
-const host = '0.0.0.0';
+const host = "0.0.0.0";
 
 const listen = (port) => {
-
-  const server = new Server();
+  
+  const server = new Server(); // Creamos el Servidor
+  
   server.on("connection", (socket) => {
     const remoteSocket = `${socket.remoteAddress}:${socket.remotePort} `;
     console.log("New connection from: ", remoteSocket);
     socket.setEncoding("utf-8"); // Convierte la data en binario a texto
+
     // Cuando nos envíe datos el cliente
     socket.on("data", (message) => {
       if (message === END) {
@@ -22,14 +24,21 @@ const listen = (port) => {
       }
       //socket.write(data); // Devolvemos la información que nos envío el cliente
     });
-    server.listen({ port, host}, () => {
-      console.log(`listening on port: ${port}`);
-    });
+
+
     socket.on("close", () => {
       console.log(`Connection with ${remoteSocket} closed`);
     });
+
+
   });
 
+  // Devuelve error si por ejemplo algún puerto ya está ocupado
+  server.on("error", (err) =>  error(err.message));
+    
+  server.listen({ port, host }, () => {
+    console.log(`listening on port: ${port}`);
+  });
 };
 
 const error = (err) => {
@@ -51,7 +60,7 @@ const main = () => {
   }
 
   port = Number(port);
-
+  
   listen(port);
 };
 
