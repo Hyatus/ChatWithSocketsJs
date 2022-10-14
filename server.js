@@ -40,7 +40,10 @@ const listen = (port) => {
         socket.end(); // Se cierra el socket y se liberan los recursos que estaba utilizando
       } else {
         // Enviar el mensaje al resto de clientes
-        console.log(`${remoteSocket} -> ${message}`);
+        const fullMessage = `[${connections.get(socket)}]: ${message}`
+        console.log(`${remoteSocket} -> ${fullMessage}`);
+        // Mensaje y de dónde ha salido el mensaje
+        sendMessage(message,socket);
       }
       //socket.write(data); // Devolvemos la información que nos envío el cliente
     });

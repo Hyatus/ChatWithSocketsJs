@@ -6,30 +6,50 @@ const readline = require("readline").createInterface({
 
 const END = "END";
 
-const socket = new Socket();
-
 const error = (message) => {
   console.error(message);
   process.exit(1);
 };
 
-socket.connect({ host: "localhost", port: 8000 });
+const connect = (host, port) => {
+  console.log(`Connecting to ${host}:${port}`);
 
-// Cuando el usuario escriba una línea es mandarsela al servidor
-readline.on("line", (message) => {
-  socket.write(message);
-  if (message === END) {
-    socket.end();
-  }
-});
+  const socket = new Socket();
 
-// socket.write("Hola"); // Envía un Buffer datos en binario
-socket.setEncoding("utf-8"); // Convierte la data en binario a texto
-socket.on("data", (data) => {
-  console.log(data);
-});
+  socket.connect({ host, port });
 
-socket.on("close", () => process.exit(0)); // Esperamos a que el servidor nos confirme la finalización del proceso, entonces lo matamos
+  // socket.write("Hola"); // Envía un Buffer datos en binario
+  socket.setEncoding("utf-8"); // Convierte la data en binario a texto
+
+  // Nos aseguramos que sí se pudo conectar
+  socket.on("connect", () => {
+    console.log("Connected!");
+
+    // Pedimos al usuario el nombre de usuario 
+
+    readline.question("Choose your username: ", (username)=>{
+      socket.write(username);
+      console.log(`Type any message to send it, type ${END} to finish`);
+    });
+
+    // Cuando el usuario escriba una línea es mandarsela al servidor
+    readline.on("line", (message) => {
+      socket.write(message);
+      if (message === END) {
+        console.log("Disconnected");
+        socket.end();
+      }
+    });
+
+    socket.on("data", (data) => {
+      console.log(data);
+    });
+  });
+
+  socket.on("error", (err) => error(err.message));
+
+  socket.on("close", () => process.exit(0)); // Esperamos a que el servidor nos confirme la finalización del proceso, entonces lo matamos
+};
 
 const main = () => {
   // Queremos recibir un puerto por la consola
@@ -41,9 +61,14 @@ const main = () => {
   // let host = process.argv[2];
   // let port = process.argv[3];
 
-  let [ , ,host,port] = process.argv; // no me interesan los primeros 2 elementos 
+  let [, , host, port] = process.argv; // no me interesan los primeros 2 elementos
+  if (isNaN(port)) {
+    error(`Invalid port ${port}`);
+  }
+  port = Number(port);
 
-  console.log(`${host}:${port}`);
+  // console.log(`${host}:${port}`);
+  connect(host, port);
 };
 
 // Si este es el archivo main ejecuta main, signfica que no se ha importado entonces lo ejecuta
