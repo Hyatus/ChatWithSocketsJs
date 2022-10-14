@@ -17,7 +17,13 @@ const connections = new Map(); // Aquí vamos a guardar todas las conexiones par
 
 const sendMessage = (message, origin) => {
   // Mandar a todos menos a origin el message
-  console.log("Hola");
+  //console.log(`Sending Messages`);
+  for (const socket of connections.keys()){
+    if (socket != origin){
+      // Si el socket que tengo es distinto del que lo ha mandado entonces le envío el mensaje 
+      socket.write(message);
+    }
+  }
 };
 
 const listen = (port) => {
@@ -37,13 +43,22 @@ const listen = (port) => {
         // Si este socket no está en el mapa es porque este es el primer mensaje
         connections.set(socket, message);
       } else if (message === END) {
-        socket.end(); // Se cierra el socket y se liberan los recursos que estaba utilizando
+        connections.delete(socket); // Eliminamos al socket del mapa 
+        socket.end(); // Se cierra el socket y se liberan los recursos que estaba utilizando    
       } else {
+
+        // Imprimimos la lista de usuarios conectados
+        // console.log('----- USUARIOS ------')
+        // for(const username of connections.values()){
+        //   console.log(username);  
+        // }
+        // console.log('----- -------- ------');
+
         // Enviar el mensaje al resto de clientes
         const fullMessage = `[${connections.get(socket)}]: ${message}`
         console.log(`${remoteSocket} -> ${fullMessage}`);
         // Mensaje y de dónde ha salido el mensaje
-        sendMessage(message,socket);
+        sendMessage(fullMessage,socket);
       }
       //socket.write(data); // Devolvemos la información que nos envío el cliente
     });
