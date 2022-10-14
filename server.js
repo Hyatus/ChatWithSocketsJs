@@ -6,24 +6,51 @@ const { Server } = require("net");
 const END = "END";
 const host = "0.0.0.0";
 
+const error = (message) => {
+  console.error(message);
+  process.exit(1);
+};
+
+
+// 127.0.0.1:8080 -> User1
+// 127.0.0.2:8080 -> User2
+const connections = new Map(); // Aquí vamos a guardar todas las conexiones para identificar a los usuarios 
+
+
+const sendMessage = (message,origin) => {
+  // Mandar a todos menos a origin el message 
+
+}
+
 const listen = (port) => {
   
   const server = new Server(); // Creamos el Servidor
   
   server.on("connection", (socket) => {
     const remoteSocket = `${socket.remoteAddress}:${socket.remotePort} `;
+
+    
     console.log("New connection from: ", remoteSocket);
     socket.setEncoding("utf-8"); // Convierte la data en binario a texto
 
     // Cuando nos envíe datos el cliente
     socket.on("data", (message) => {
-      if (message === END) {
+      if(!connections.has(socket)){
+
+        // Vamos a loggearlo también 
+        console.log(`Username ${message} set for connection ${remoteSocket}`);
+        // Si este socket no está en el mapa es porque este es el primer mensaje
+        connections.set(socket,message);
+
+      } else if (message === END) {
         socket.end(); // Se cierra el socket y se liberan los recursos que estaba utilizando
       } else {
+        // Enviar el mensaje al resto de clientes 
         console.log(`${remoteSocket} -> ${message}`);
       }
       //socket.write(data); // Devolvemos la información que nos envío el cliente
-    });
+
+    socket.on("error",(err)=> error(err.message));
 
 
     socket.on("close", () => {
@@ -41,10 +68,6 @@ const listen = (port) => {
   });
 };
 
-const error = (err) => {
-  console.error(err);
-  process.exit(1);
-};
 
 const main = () => {
   // Queremos recibir un puerto por la consola
