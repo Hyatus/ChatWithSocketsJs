@@ -19,6 +19,7 @@ const connections = new Map(); // Aquí vamos a guardar todas las conexiones par
 
 const sendMessage = (message,origin) => {
   // Mandar a todos menos a origin el message 
+  console.log('Hola')
 
 }
 
@@ -28,13 +29,13 @@ const listen = (port) => {
   
   server.on("connection", (socket) => {
     const remoteSocket = `${socket.remoteAddress}:${socket.remotePort} `;
-
-    
+  
     console.log("New connection from: ", remoteSocket);
     socket.setEncoding("utf-8"); // Convierte la data en binario a texto
 
     // Cuando nos envíe datos el cliente
     socket.on("data", (message) => {
+
       if(!connections.has(socket)){
 
         // Vamos a loggearlo también 
@@ -50,15 +51,15 @@ const listen = (port) => {
       }
       //socket.write(data); // Devolvemos la información que nos envío el cliente
 
-    socket.on("error",(err)=> error(err.message));
+    });
 
+    server.on("error", (err) =>  error(err.message));
 
     socket.on("close", () => {
       console.log(`Connection with ${remoteSocket} closed`);
     });
 
-
-  });
+  })
 
   // Devuelve error si por ejemplo algún puerto ya está ocupado
   server.on("error", (err) =>  error(err.message));
@@ -66,6 +67,7 @@ const listen = (port) => {
   server.listen({ port, host }, () => {
     console.log(`listening on port: ${port}`);
   });
+  
 };
 
 
